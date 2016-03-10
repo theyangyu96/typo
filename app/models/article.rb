@@ -416,6 +416,23 @@ class Article < Content
     user.admin? || user_id == user.id
   end
 
+
+  def merge_article(id)
+    merging = Article.find_by_id(id)
+    if not self.id or not merging.id and self.id != merging.id
+      return false
+    end
+
+    self.body = self.body + "\n\n" + merging.body
+    self.comments << merging.comments
+    self.save!
+
+    merging = Article.find_by_id(id)
+    merging.destroy
+
+    return true
+  end
+  
   protected
 
   def set_published_at
@@ -466,4 +483,7 @@ class Article < Content
     to = to - 1 # pull off 1 second so we don't overlap onto the next day
     return from..to
   end
+  
+  
+
 end

@@ -5,67 +5,48 @@ Feature: Create Blog
   
  Background:
     Given the blog is set up
+
+    Given the following users exist:
+        | profile_id | login    | name   | password | email           |
+        | 2          | pengster | Angela | ppppppp  | 1@example.com   |
+        | 3          | yangster | Yang   | yyyyyyy  | 2@example.com   |
+
+    Given the following articles exist:
+        | id | title    | author   | user_id | body     |
+        | 3  | A1       | pengster | 2       | Hello    |
+        | 4  | A2       | yangster | 3       | World    | 
+
+    Given the following comments exist:
+        | id | author   | body     | article_id | user_id |
+        | 1  | pengster | Comment1 | 3          | 2       |
+        | 2  | yangster | Comment2 | 4          | 3       |
     
 Scenario: Non-admin cannot merge articles
-   Given I am on the admin panel
-   Then I should see "Login"
+  Given I am logged in as "pengster" with "ppppppp"
+  And I am at the Edit Page of Article with id "3"
+  Then I should not see "Merge Articles"
+  
    
-Scenario: When articles are merged, the merged article should contain the text of both previous articles
-  Given the blog is set up
-  And I am logged into the admin panel
-  Given I am on the new article page
-    When I fill in "article_title" with "A1"
-    And I fill in "article__body_and_extended_editor" with "Hello"
-    And I press "Publish"
-    Then I should be on the admin content page
-    
-  Given I am on the new article page
-    When I fill in "article_title" with "A2"
-    And I fill in "article__body_and_extended_editor" with "World"
-    And I press "Publish"
-    Then I should be on the admin content page
-  When I follow "Edit"
-    And I fill in "merge_id" with "1"
-    Then I should be on the admin content page
-    When I follow "A1"
-    Then I should see "Hello World"
-    And the author should be "admin"
+Scenario: the merged article should contain the text of both previous articles
+  Given I merged Articles with ids "3" and "4"
+  And I am at the Edit Page of Article with id "3"
+  And I am logged in as "pengster" with "ppppppp"
+  Then I should see "Hello"
+  And I should see "World"
   
+Scenario: authors of merged articles are merged
+  Given I merged Articles with ids "3" and "4"
+  Then "pengster" should be the author of article with id "3"
+  And "yangster" should not be the author of article with id "3"
+
 Scenario: comments of merged aritcles are merged
-    Given the blog is set up
-  And I am logged into the admin panel
-  Given I am on the new article page
-    When I fill in "article_title" with "A1"
-    And I fill in "article__body_and_extended_editor" with "Hello"
-    And I press "Publish"
-    Then I should be on the admin content page
-    
-  Given I am on the new article page
-    When I fill in "article_title" with "A2"
-    And I fill in "article__body_and_extended_editor" with "World"
-    And I press "Publish"
-    Then I should be on the admin content page
-  
-  Given I am on the home page
-    When I follow "A1"
-    And I fill in "comment_author" with "bum"
-    And I fill in "comment_body" with "I hate my life"
+  Given I merged Articles with ids "3" and "4"
+  Then Article "3" should have comment id "1"  
+  And Article "3" should have comment id "2"
 
-  Given I am on the home page
-    When I follow "A2"
-    And I fill in "comment_author" with "mub"
-    And I fill in "comment_body" with "I love my life"
-
-  When I follow "Edit"
-    And I fill in "merge_id" with "1"
-    Then I should be on the admin content page
-  When I follow "Comments"
-  
-  Given I am on the home page
-    When I follow "A2"
-    Then I should see "I love my life"
-    And I should see "I hate my life"
-    
+Scenario: The title should be either one of the merged articles
+    Given I merged Articles with ids "3" and "4"
+    Then Article "3" should have title "A1"
 
     
 
